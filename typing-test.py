@@ -12,9 +12,12 @@ class Game:
         self.reset=True
         self.active=False
         self.input_text=''
+        self.total_input=''
         self.word=''
         self.time_start=0
         self.total_time=0
+        self.correct_count=0
+        self.total_count=0
         self.accuracy='0%'
         self.results = 'Time:0 Accuracy:0 WPM:0'
         self.wpm=0
@@ -48,23 +51,28 @@ class Game:
         sentence = random.choice(sentences)
         return sentence
 
+    def calculate_results(self):
+        count = 0
+        for i,c in enumerate(self.word):
+            try:
+                if self.input_text[i] == c:
+                    count +=1
+            except:
+                pass
+        self.correct_count += count
+        self.total_count += len(self.word)
+        self.total_input += self.input_text
+
     def show_results(self, screen):
         if(not self.end):
             #Calculate time
             self.total_time = time.time() - self.time_start
 
             #Calculate accuracy
-            count = 0
-            for i,c in enumerate(self.word):
-                try:
-                    if self.input_text[i] == c:
-                        count +=1
-                except:
-                    pass
-            self.accuracy = count/len(self.word)*100
+            self.accuracy = (self.correct_count/self.total_count)*100
 
             #Calculate words per minute
-            self.wpm = len(self.input_text)*60/(5*self.total_time)
+            self.wpm = len(self.total_input)*60/(5*self.total_time)
             self.end = True
             print(self.total_time)
 
@@ -74,7 +82,6 @@ class Game:
             self.time_img = pygame.transform.scale(self.time_img, (150,150))
             screen.blit(self.time_img, (self.w/2-75,self.h-140))
             self.draw_text(screen,"Reset", self.h - 70, 26, (100,100,100))
-            print(self.results)
             pygame.display.update()
 
 
@@ -84,9 +91,9 @@ class Game:
         while(self.running):
             clock = pygame.time.Clock()
             #recoloring the box for user input to remove previous text
-            self.screen.fill((0,0,0), (660,490,600,100))
+            self.screen.fill((0,0,0), (560,490,800,100))
             #drawing box for user input
-            pygame.draw.rect(self.screen,self.HEAD_C, (660,490,600,100), 2)
+            pygame.draw.rect(self.screen,self.HEAD_C, (560,490,800,100), 2)
             #update the text of user input
             self.draw_text(self.screen, self.input_text, 540, 40,(250,250,250))
             pygame.display.update()
@@ -97,7 +104,7 @@ class Game:
                 elif event.type == pygame.MOUSEBUTTONUP:
                     x,y = pygame.mouse.get_pos()
                     # position of input box
-                    if(x>= 660 and x<=1260 and y>=490 and y<=590):
+                    if(x>= 560 and x<=1360 and y>=490 and y<=590):
                         self.active = True
                         self.input_text = ''
                         self.time_start = time.time()
@@ -110,7 +117,7 @@ class Game:
                     if self.active and not self.end:
                         if event.key == pygame.K_RETURN:
                             self.counter+=1
-                            print(self.counter)
+                            self.calculate_results()
                             if(self.counter==10):
                                 print(self.input_text)
                                 self.show_results(self.screen)
@@ -143,7 +150,7 @@ class Game:
         msg = "Typing Speed Test"
         self.draw_text(self.screen, msg,80, 80,self.HEAD_C)
         # draw the rectangle for input box
-        pygame.draw.rect(self.screen,self.HEAD_C, (660,490,600,100), 2)
+        pygame.draw.rect(self.screen,self.HEAD_C, (560,490,800,100), 2)
         # draw the sentence string
         self.draw_text(self.screen, self.word,300, 40,self.TEXT_C)
         pygame.display.update()
@@ -156,9 +163,12 @@ class Game:
         self.reset=False
         self.end = False
         self.input_text=''
+        self.total_input=''
         self.word = ''
         self.time_start = 0
         self.total_time = 0
+        self.correct_count=0
+        self.total_count=0
         self.wpm = 0
         # Get random sentence
         self.word = self.get_sentence()
